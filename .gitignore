@@ -1,0 +1,47 @@
+# ---- Python ----
+*.pyc
+*.pyo
+__pycache__/
+*.pyd
+*.egg-info/
+dist/
+build/
+.env
+.venv/
+venv/
+.env.*
+
+# ---- FastAPI / Uvicorn logs ----
+logs/
+*.log
+
+# ---- Jupyter / DVC / ML ----
+.ipynb_checkpoints/
+mlruns/
+.dvc/
+.cache/
+*.pt
+*.pkl
+*.joblib
+models/
+checkpoints/
+artifacts/
+
+# ---- Node / React ----
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+frontend/.env
+
+# ---- VSCode ----
+.vscode/
+
+# ---- OS / Editor Specific ----
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# ---- Docker / Deployment ----
+*.db
+docker-compose.override.yml
