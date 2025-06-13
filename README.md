@@ -36,20 +36,56 @@ LexiBot is an open-source LLM-powered platform for legal professionals to analyz
 lexibot/
 ├── backend/
 │   ├── app/
-│   │   ├── api/
-│   │   ├── services/   # RAG, embeddings, clause tagging, etc.
-│   │   ├── models/
-│   │   └── utils/
-│   ├── main.py
-│   └── Dockerfile
+│   │   ├── api/                   # FastAPI routers (upload, ask, validate, summarize, etc.)
+│   │   ├── core/                  # Settings, config loading, constants
+│   │   ├── services/              # Business logic for clause tagging, validation, RAG, etc.
+│   │   ├── ml/                    # ML-specific functions (inference utils, pipelines, etc.)
+│   │   ├── models/                # Pydantic schemas + DB models
+│   │   ├── db/                    # DB connection, models, and ORM utils (MongoDB/Postgres)
+│   │   ├── vectorstore/           # FAISS/ChromaDB integrations
+│   │   └── utils/                 # Helper functions (parsers, chunkers, logging)
+│   ├── pipelines/
+│   │   ├── clause_tagging/        # Fine-tuning scripts, label schema, training utils
+│   │   ├── embeddings/            # Embedding generator scripts for text/doc chunks
+│   │   ├── summarization/         # Training, testing summarization models
+│   │   └── rag_pipeline/          # End-to-end RAG orchestration and testing
+│   ├── tests/                     # Unit & integration tests
+│   ├── main.py                    # FastAPI entrypoint
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── mlops/
+│   ├── mlflow/                    # MLflow experiments and setup
+│   ├── dvc/                       # DVC pipelines and tracked datasets
+│   ├── configs/                   # Model configs, hyperparams, TOML/YAML formats
+│   └── notebooks/                 # Jupyter notebooks for experiments & prototyping
+│
 ├── frontend/
 │   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/              # API integrations
+│   │   ├── context/               # Auth & global state
+│   │   └── utils/                 # File parser, highlighters, etc.
 │   ├── public/
 │   └── vite.config.js
+│
+├── deployments/
+│   ├── docker-compose.yml         # For local testing with services
+│   ├── ec2/                       # EC2 provisioning scripts & AMI setup
+│   ├── railway/                   # Railway deployment configs
+│   └── github-actions/           # CI/CD workflows for backend, frontend, and ML models
+│
 ├── data/
-│   ├── legal_templates/
-│   └── uploads/
-└── vector_store/
+│   ├── raw/                       # Uploaded or collected files
+│   ├── processed/                 # Preprocessed clause chunks, summaries, etc.
+│   ├── legal_templates/          # Clause templates, JSON/MD format
+│   └── embeddings/               # Saved embedding vectors
+│
+├── vector_store/                 # Chroma/FAISS local storage
+├── scripts/                      # Utility scripts (DB seeding, migrations, monitoring)
+└── README.md
+
 ```
 
 ---
