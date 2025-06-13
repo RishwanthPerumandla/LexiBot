@@ -27,6 +27,8 @@ LexiBot is an open-source LLM-powered platform for legal professionals to analyz
 | File Store | Local / S3 / Supabase Buckets |
 | Vector DB  | FAISS / ChromaDB |
 | DevOps     | Docker, GitHub Actions (CI), Railway/EC2 (deployment) |
+| MLOps      | MLflow, DVC, Jupyter, Docker |
+
 
 ---
 
