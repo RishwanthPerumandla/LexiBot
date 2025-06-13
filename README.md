@@ -1,4 +1,4 @@
-# 🚀 LexiBot – AI-Powered Legal Research & Clause Validation System
+#  LexiBot – AI-Powered Legal Research & Clause Validation System
 
 LexiBot is an open-source LLM-powered platform for legal professionals to analyze contracts, policies, and legal documents with clause-level intelligence. It supports clause extraction, validation, comparison, summarization, and natural language Q&A using LLMs, RAG, and embedding-based search.
 
