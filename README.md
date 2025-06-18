@@ -81,7 +81,7 @@ lexibot/
 │   ├── raw/                       # Uploaded or collected files
 │   ├── processed/                 # Preprocessed clause chunks, summaries, etc.
 │   ├── legal_templates/           # Clause templates, JSON/MD format
-│   └── embeddings/               # Saved embedding vectors
+│   └── embeddings/                # Saved embedding vectors
 │
 ├── vector_store/                 # Chroma/FAISS local storage
 ├── scripts/                      # Utility scripts (DB seeding, migrations, monitoring)
@@ -92,96 +92,96 @@ lexibot/
 
 ## 🛡️ Progress So Far (Milestone 1)
 
-We have successfully implemented the foundational components for LexiBot's backend and RAG pipeline:
+We have successfully implemented the foundational components for LexiBot's backend, document parsing, vector database setup, and RAG-based semantic Q&A.
 
 ### ✅ Project Setup
 
-* Initialized Git repo with `.gitignore`
-* Structured backend folder with FastAPI, utils, vectorstore
-* Added requirements.txt for backend dependencies
+* Initialized Git repo with `.gitignore` and proper folder structure
+* Set up FastAPI backend with modular architecture (`api`, `utils`, `vectorstore`, `db`)
+* Added all required packages to `requirements.txt`
+* Created reusable utility modules for parsing, embedding, chunking, and summarization
 
 ### ✅ Document Upload & Parsing
 
-* `/upload` route to accept `.pdf` and `.docx` files
-* Parsed documents using `pdfminer.six` and `python-docx`
-* Saved uploaded files to `data/raw/`
-* Extracted plain text from files
+* `/upload` API to accept `.pdf` and `.docx` legal documents
+* Parsed PDFs using `pdfminer.six` and DOCX using `python-docx`
+* Stored uploaded documents in `data/raw/` and extracted plain text
+* Inserted metadata and full text into MongoDB
 
 ### ✅ Text Chunking
 
-* Built `chunk_text()` utility with overlap handling
-* Split documents into \~300-token chunks for embedding
+* Implemented `chunk_text()` utility with overlap for semantic continuity
+* Split long text into ~300 token chunks with 50 token overlap
+* Stored chunks in MongoDB and used them for embedding
 
-### ✅ Embeddings + Vector Store
+### ✅ Embeddings + Vector Store (FAISS)
 
-* Embedded chunks using `all-MiniLM-L6-v2` from Sentence Transformers
-* Stored embeddings in FAISS index
-* Stored chunk metadata alongside FAISS index
+* Generated embeddings using `all-MiniLM-L6-v2` via `SentenceTransformers`
+* Stored embeddings and corresponding text chunks in FAISS index
+* Saved FAISS index and metadata to disk (`vector_store/`)
 
-### ✅ RAG Q\&A Endpoint
+### ✅ RAG Q&A Endpoint
 
-* `/ask` route receives natural language question
-* Embeds question and retrieves top-k chunks via FAISS
-* Injects chunks into local `flan-t5-small` LLM using LangChain's QA chain
-* Returns answer + context snippets
-* Works fully offline, no HuggingFace API key needed
+* `/search` API takes `document_id` + natural language `query`
+* Embeds query and retrieves top-k semantically relevant chunks from FAISS
+* Injects context + query into `flan-t5-base` for answer generation
+* Returns clean answer and supporting chunks
+* Works completely offline and model is preloaded during startup
 
-You can test this in Swagger UI (`/docs`) or with a tool like Postman.
+You can test the RAG-based Q&A flow using Swagger UI (`/docs`) or any REST client like Postman or cURL.
 
----
 
 ## 📌 Core Modules & To-Dos
 
 ### 1. **Document Upload & Preprocessing**
-
-* [x] Build file uploader (PDF, DOCX)
-* [x] Parse documents → extract text using `pdfminer` or `docx2txt`
-* [x] Split into meaningful chunks (e.g., paragraphs, clauses)
-* [x] Store metadata (title, upload time, user, etc.)
+- [x] Build file uploader (PDF, DOCX)
+- [x] Parse documents using `pdfminer` and `python-docx`
+- [x] Extract plain text and store to MongoDB
+- [x] Chunk text using custom `chunk_text()` with overlap
+- [x] Embed chunks with `all-MiniLM-L6-v2` and store in FAISS
+- [x] Save associated metadata (filename, time, chunks, summary)
 
 ### 2. **Clause Extraction & Tagging**
-
-* [ ] Define clause categories (e.g., NDA, indemnity, jurisdiction, etc.)
-* [ ] Train/finetune or use zero-shot LLMs for tagging clause types
-* [ ] Highlight and label extracted clauses in frontend
+- [ ] Define clause categories (e.g., NDA, indemnity, jurisdiction)
+- [ ] Implement clause tagging via zero-shot LLMs or fine-tuned models
+- [ ] Highlight tagged clauses and send to frontend via API
 
 ### 3. **Clause Validator (MiniBot)**
+- [ ] Build a clause template repository (JSON/Markdown)
+- [ ] Create validation logic to compare uploaded clauses to templates
+- [ ] Detect missing/modified clauses (e.g., missing NDA)
+- [ ] Build route to validate a document or compare two documents
 
-* [ ] Create clause template bank (JSON or Markdown)
-* [ ] Validate if document has mandatory clauses (NDA, Termination, etc.)
-* [ ] Flag missing or altered clauses
-* [ ] Compare against previous version (doc1 vs doc2)
-
-### 4. **RAG-based Q\&A Module**
-
-* [x] Embed chunks using MiniLM / LegalBERT
-* [x] Store embeddings in FAISS/Chroma
-* [x] Set up LangChain RAG pipeline with context injection
-* [x] Build FastAPI route to handle `/ask-question`
+### 4. **RAG-based Q&A Module**
+- [x] Embed query using SentenceTransformer
+- [x] Search top-k similar chunks from FAISS
+- [x] Inject retrieved chunks into `flan-t5-base` pipeline
+- [x] Return generated answer + context
+- [x] Build endpoint `/search` for document-specific QA
 
 ### 5. **Summarization Engine**
-
-* [ ] Use T5 or Bart-based summarization models from HuggingFace
-* [ ] Chunk long documents + summarize key sections (clauses, risks, etc.)
-* [ ] Return summary with highlights to frontend
+- [x] Chunk text and summarize each block using `bart-large-cnn`
+- [x] Merge chunk summaries into one cohesive summary
+- [x] Store summary back to MongoDB
+- [x] Return summary via `/summarize` endpoint
 
 ### 6. **Frontend UI**
-
-* [ ] Dashboard for uploaded docs
-* [ ] View document with clause labels + redline comparison
-* [ ] Ask a Question input box (RAG)
-* [ ] Summary + clause validation results
+- [ ] Upload form with drag-drop for legal docs
+- [ ] Document detail view with metadata, text, and summary
+- [ ] Highlight clause tags inside the viewer
+- [ ] Q&A interface using RAG backend
+- [ ] View clause validation results and redline diffs
 
 ### 7. **User Roles & Auth (Optional)**
-
-* [ ] Add role-based UI (lawyer, admin, viewer)
-* [ ] Use Supabase auth / Clerk / Auth0 (free tier)
+- [ ] Create roles: Admin, Lawyer, Reviewer
+- [ ] Implement RBAC via Supabase/Auth0
+- [ ] Show/hide views and actions based on role
 
 ### 8. **DevOps & CI/CD**
-
-* [ ] Dockerize backend + frontend
-* [ ] Set up GitHub Actions for lint/test/build
-* [ ] Deploy via Railway / Render / EC2
+- [ ] Dockerize FastAPI backend and React frontend
+- [ ] Add GitHub Actions to lint/test backend
+- [ ] Deploy to Railway/EC2 with FAISS + MongoDB
+- [ ] Auto-pull docs from bucket to vector store on boot (optional)
 
 ---
 
