@@ -1,8 +1,9 @@
+# app/api/ask.py:
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.utils.embedding import model as embedding_model
 from app.vectorstore.vectorstore import load_faiss_index
-from langchain.llms import HuggingFacePipeline
+from langchain_huggingface import HuggingFacePipeline
 from langchain.chains.question_answering import load_qa_chain
 from langchain.docstore.document import Document
 from transformers import pipeline

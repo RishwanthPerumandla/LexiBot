@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from app.api import upload, ask,summarize,documents,search
+from app.api import upload, ask,summarize,documents
 
 app = FastAPI(title="LexiBot API")
 
@@ -23,7 +23,7 @@ app.include_router(upload.router)
 app.include_router(ask.router)
 app.include_router(summarize.router)
 app.include_router(documents.router)
-app.include_router(search.router)
+# app.include_router(search.router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,3 +1,4 @@
+# app/utils/embedding.py:
 from typing import List
 from sentence_transformers import SentenceTransformer
 import numpy as np
