@@ -6,3 +6,6 @@ langchain
 sentence-transformers
 pdfminer.six
 python-docx
+transformers
+pymongo
+python-dotenv

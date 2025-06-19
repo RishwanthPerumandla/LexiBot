@@ -45,3 +45,6 @@ Thumbs.db
 # ---- Docker / Deployment ----
 *.db
 docker-compose.override.yml
+
+
+backend/data/raw/*
