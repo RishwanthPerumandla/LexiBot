@@ -129,7 +129,23 @@ We have successfully implemented the foundational components for LexiBot's backe
 * Works completely offline and model is preloaded during startup
 
 You can test the RAG-based Q&A flow using Swagger UI (`/docs`) or any REST client like Postman or cURL.
+✅ Clause Validation
 
+* /validate route compares document chunks against a YAML-defined clause library
+
+* Uses cosine similarity to find best matching clauses
+
+* Tags each clause as matched or missing with matched snippet (if any)
+
+✅ Document Summarization
+
+* /summarize/{doc_id} route supports extractive summarization
+
+* Splits long text into manageable segments, summarizes each with BART (facebook/bart-large-cnn)
+
+* Dynamically adjusts max_length and min_length based on input size to improve quality
+
+* Updates document with summary in MongoDB
 
 ## 📌 Core Modules & To-Dos
 
@@ -142,15 +158,15 @@ You can test the RAG-based Q&A flow using Swagger UI (`/docs`) or any REST clien
 - [x] Save associated metadata (filename, time, chunks, summary)
 
 ### 2. **Clause Extraction & Tagging**
-- [ ] Define clause categories (e.g., NDA, indemnity, jurisdiction)
-- [ ] Implement clause tagging via zero-shot LLMs or fine-tuned models
-- [ ] Highlight tagged clauses and send to frontend via API
+- [x] Define clause categories (e.g., NDA, indemnity, jurisdiction)
+- [x] Implement clause tagging via zero-shot LLMs or fine-tuned models
+- [x] Highlight tagged clauses and send to frontend via API
 
 ### 3. **Clause Validator (MiniBot)**
-- [ ] Build a clause template repository (JSON/Markdown)
-- [ ] Create validation logic to compare uploaded clauses to templates
-- [ ] Detect missing/modified clauses (e.g., missing NDA)
-- [ ] Build route to validate a document or compare two documents
+- [x] Build a clause template repository (JSON/Markdown)
+- [x] Create validation logic to compare uploaded clauses to templates
+- [x] Detect missing/modified clauses (e.g., missing NDA)
+- [x] Build route to validate a document or compare two documents
 
 ### 4. **RAG-based Q&A Module**
 - [x] Embed query using SentenceTransformer
