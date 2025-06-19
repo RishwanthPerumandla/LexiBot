@@ -2,20 +2,40 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from bson import ObjectId
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from transformers import pipeline, AutoTokenizer
 
-from app.utils.embedding import embed_query
+from app.utils.embedding import embed_query, model as embedding_model
 from app.db.client import documents_collection
 from app.vectorstore.vectorstore import load_faiss_index
-from transformers import pipeline
 
 router = APIRouter(prefix="/search", tags=["Search"])
 
-# Load Q&A pipeline
+# Load model and tokenizer once
 qa_pipeline = pipeline("text2text-generation", model="google/flan-t5-base")
+tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 
+# Request schema
 class SearchRequest(BaseModel):
     query: str
     document_id: str = None  # Optional
+
+
+# Utility: Truncate context tokens safely
+def truncate_context(text: str, max_tokens: int = 400) -> str:
+    tokens = tokenizer.encode(text, truncation=True, max_length=max_tokens)
+    return tokenizer.decode(tokens, skip_special_tokens=True)
+
+
+# Utility: Construct prompt for legal QA
+def legal_prompt(context: str, question: str) -> str:
+    return (
+        "You are a professional and friendly legal assistant. Based on the following context, answer the user's question in a clear and helpful tone.\n"
+        "Start your response with a brief acknowledgment (e.g., “Yes, here are the details…” or “Let me check that for you…”).\n"
+        "If the information is not available, say “It appears that this detail is not mentioned in the document.”\n\n"
+        f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+    )
+
 
 @router.post("/")
 def search_documents(payload: SearchRequest):
@@ -25,11 +45,11 @@ def search_documents(payload: SearchRequest):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
 
-    # Embed the query
+    # Embed query
     query_vector = embed_query(query).astype("float32").reshape(1, -1)
 
+    # === Document-specific search ===
     if document_id:
-        # Search in the specific document
         try:
             doc = documents_collection.find_one({"_id": ObjectId(document_id)})
             if not doc:
@@ -41,14 +61,13 @@ def search_documents(payload: SearchRequest):
         if not chunks:
             raise HTTPException(status_code=400, detail="No chunks available in document.")
 
-        chunk_embeddings = embed_query_list(chunks)
+        chunk_embeddings = embedding_model.encode(chunks, convert_to_numpy=True)
         scores = cosine_similarity(query_vector, chunk_embeddings)[0]
-        top_k = min(5, len(scores))
-        top_indices = scores.argsort()[::-1][:top_k]
+        top_indices = scores.argsort()[::-1][:min(5, len(scores))]
         matched_chunks = [chunks[i] for i in top_indices]
 
+    # === Global FAISS search ===
     else:
-        # Global search using FAISS
         index, metadata = load_faiss_index()
         if index is None:
             raise HTTPException(status_code=404, detail="Global index not found.")
@@ -56,14 +75,12 @@ def search_documents(payload: SearchRequest):
         D, I = index.search(query_vector, k=5)
         matched_chunks = [metadata[i] for i in I[0]]
 
-    # Generate answer
-    context = "\n".join(matched_chunks)
-    prompt = (
-        f"Answer the following question based on the context:\n\n"
-        f"Context:\n{context}\n\nQuestion: {query}"
-    )
+    # === Prompt construction and model inference ===
+    raw_context = "\n".join(matched_chunks)
+    trimmed_context = truncate_context(raw_context)
+    prompt = legal_prompt(trimmed_context, query)
 
-    response = qa_pipeline(prompt, max_length=256, do_sample=False)
+    response = qa_pipeline(prompt, max_new_tokens=128, do_sample=False)
     answer = response[0]["generated_text"].strip()
 
     return {
@@ -71,11 +88,3 @@ def search_documents(payload: SearchRequest):
         "matched_chunks": matched_chunks,
         "answer": answer
     }
-
-# --- Helper functions ---
-
-from sklearn.metrics.pairwise import cosine_similarity
-from app.utils.embedding import model as embedding_model
-
-def embed_query_list(chunks: list) -> np.ndarray:
-    return embedding_model.encode(chunks, convert_to_numpy=True)
